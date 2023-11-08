@@ -1,0 +1,10 @@
+.btn-blue{
+    --bs-btn-color: var(--bs-white);
+    --bs-btn-bg: #3b88fb;
+    --bs-btn-hover-color: var(--bs-white);
+    --bs-btn-hover-bg: #0143a5;
+    --bs-btn-hover-border-color: #0143a5;
+    --bs-btn-active-color: var(--bs-white);
+    --bs-btn-active-bg: #022252;
+    --bs-btn-active-border-color: #022252;
+  }

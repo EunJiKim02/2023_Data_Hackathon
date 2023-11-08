@@ -1,0 +1,26 @@
+footer {
+    position: fixed;
+    width: 100%;
+    left: 0px;
+    bottom: 0px;
+    height: 80px;
+    background-color: #3b88fb;
+    font-size:9vw;
+  }
+  i {
+    color: #f0f0f0;
+  }
+
+  i.activated{
+    color:#01337f
+  }
+  
+  .footer-text{
+    font-size:0.4em;
+    color:#f0f0f0;
+  }
+  
+  .footer-text-activated{
+    font-size:0.4em;
+    color:#01337f
+  }

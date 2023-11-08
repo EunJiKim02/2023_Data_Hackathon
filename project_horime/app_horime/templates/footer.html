@@ -1,0 +1,68 @@
+{% load static %}
+<link href="{% static 'css/footer.css'%}" rel="stylesheet">
+<footer class="footer py-xl-5 rounded-top-3">
+    <div class="container text-center">
+      <div class="row align-items-end">
+        {% if menu == 1 %}
+          <div class="col">
+            <a href="{%url 'menu1_home'%}">
+              <i class="bi bi-water activated"></i>
+            </a>
+            <div class="footer-text-activated">위험도 예측</div>
+          </div>
+        {% else %}
+          <div class="col">
+            <a href="{%url 'menu1_home'%}">
+              <i class="bi bi-water"></i>
+            </a>
+            <div class="footer-text">위험도 예측</div>
+          </div>
+        {% endif %}
+        {% if menu == 2 %}
+          <div class="col">
+            <a href="{%url 'menu2_home'%}">
+              <i class="bi bi-life-preserver activated"></i>
+            </a>
+            <div class="footer-text-activated">대피소 안내</div>
+          </div>
+        {% else %}
+          <div class="col">
+            <a href="{%url 'menu2_home'%}">
+              <i class="bi bi-life-preserver"></i>
+            </a>
+            <div class="footer-text">대피소 안내</div>
+          </div>
+        {% endif %}
+        {% if menu == 3 %}
+          <div class="col">
+            <a href="{%url 'menu3_home'%}">
+              <i class="bi bi-person-heart activated"></i>
+            </a>
+            <div class="footer-text-activated">생존수칙</div>
+          </div>
+        {% else %}
+          <div class="col">
+            <a href="{%url 'menu3_home'%}">
+              <i class="bi bi-person-heart"></i>
+            </a>
+            <div class="footer-text">생존수칙</div>
+          </div>
+        {%endif%}
+        {% if menu == 4 %}
+        <div class="col">
+          <a href="{%url 'menu4_home'%}">
+            <i class="bi bi-journal-richtext activated"></i>  
+          </a>
+          <div class="footer-text-activated">게시판</div>
+        </div>
+        {%else%}
+          <div class="col">
+            <a href="{%url 'menu4_home'%}">
+              <i class="bi bi-journal-richtext"></i>  
+            </a>
+            <div class="footer-text">게시판</div>
+          </div>
+          {%endif%}
+      </div>
+    </div>
+  </footer>
