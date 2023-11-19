@@ -21,9 +21,9 @@ import app_horime.views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', app_horime.views.cover, name='cover'),
-    path('menu1/home/',app_horime.views.menu1_home, name='menu1_home'),
-    path('menu2/home/',app_horime.views.menu2_home, name='menu2_home'),
-    path('menu3/home/',app_horime.views.menu3_home, name='menu3_home'),
-    path('menu4/home/',app_horime.views.menu4_home, name='menu4_home'),
+    path('menu1/',app_horime.views.menu1_home, name='menu1_home'),
+    path('menu2/',app_horime.views.menu2_home, name='menu2_home'),
+    path('menu3/',app_horime.views.menu3_home, name='menu3_home'),
+    path('menu3/<int:id>', app_horime.views.menu3_post, name='menu3_post'),
 
 ]
