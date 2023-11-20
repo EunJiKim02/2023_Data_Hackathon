@@ -3,7 +3,7 @@ Description=uWSGI service
 After=syslog.target
 
 [Service]
-ExecStart=/srv/venv_horime/bin/uwsgi -i /srv/2023_Data_Hackathon/project_horime/.config/uwsgi/mysite.ini
+ExecStart=/srv/venv_horime/bin/uwsgi -i /srv/2023_Data_Hackathon/project_horime/.config/uwsgi/project_horime.ini
 
 Restart=always
 KillSignal=SIGQUIT
