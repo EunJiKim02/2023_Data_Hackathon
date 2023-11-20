@@ -4,7 +4,7 @@ from django.urls import reverse
 from .models import *
 from geopy.geocoders import Nominatim
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime,timedelta
 from scipy.stats import norm
 import numpy as np
 import os
@@ -143,7 +143,7 @@ def is_json_key_present(json, key1, key2):
 
     return True
 
-ow_key = "b509e9663a03fef98e9958ccc0d00029"
+ow_key = os.getenv('OPENWEATHER_API_KEY')
 ow_url = "https://api.openweathermap.org/data/2.5/weather"
 def openweather(lat, lon):
     params={'lat':lat, 'lon':lon, 'appid':ow_key, 'lang':'kr'}
@@ -191,7 +191,7 @@ def avalanche_alarm(level, rainfall, elevation):
         return 2
     return 3
 
-def load_wamis_sim(location): #시뮬레이션 wamis 정보 로드
+def load_wamis_sim(): #시뮬레이션 wamis 정보 로드
     #1. 시간설정
     sim_dict = {} #key: YYmmddhh 형식, value: [rf, wl, iqty, tdqty]
     #강수량(rf)
@@ -223,17 +223,11 @@ def load_wamis_sim(location): #시뮬레이션 wamis 정보 로드
                 sim_dict[k['obsdh']].append(float(k['iqty']))
                 sim_dict[k['obsdh']].append(float(k['tdqty']))
     # pp.pprint(sim_dict)
-
-    #위치 설정
-    coor={}
-    if location==0: #예천군 미호리 보문교
-        coor = {'lat': 36.66154100010838, 'lon':128.5135448823666}
-    elif location==1: #예천군 효자면 백석리
-        coor = {'lat':36.799409186466946, 'lon':128.44686161183995}
     
-    return sim_dict, coor
+    return sim_dict
 
 def load_wamis_cur(dt): #실시간 wamis 정보 로드
+    
     wamis_dict ={}
     res = wamis(dt, 2,0)
     for i in res:
@@ -252,6 +246,15 @@ def load_wamis_cur(dt): #실시간 wamis 정보 로드
             wamis_dict[j['obsdh']].append(float(j['tdqty']))
     
     return wamis_dict
+
+def load_coor_sim(location):
+    #위치 설정
+    coor={}
+    if location==0: #예천군 미호리 보문교
+        coor = {'lat': 36.66154100010838, 'lon':128.5135448823666}
+    elif location==1: #예천군 효자면 백석리
+        coor = {'lat':36.799409186466946, 'lon':128.44686161183995}
+    return coor
 
 def find_minDistance(X):
     # file_name="/content/drive/MyDrive/total_andong_data.csv"
@@ -290,78 +293,123 @@ def find_minDistance(X):
         return 1 #위험
     return 2 #주의
 
+def generate_hourly_timestamps(start_timestamp):
+    start_datetime = datetime.strptime(start_timestamp, '%Y%m%d%H')
+    key = []
+    for i in range(24):
+        current_datetime = start_datetime - timedelta(hours=i)
+        formatted_timestamp = current_datetime.strftime('%Y%m%d%H')
+        key.append(formatted_timestamp)
+    key.reverse()
+    # 테스트
+    #print(generate_hourly_timestamps('2023071910'))
+    return key
+
 # Create your views here.
 def cover(request):
     return render(request, 'cover.html')
 
 def menu1_home(request):
-    menu=1
+    menu = 1
     #위치 새로고침 버튼 클릭시 API 호출, 주소 계산
-    if request.method == 'POST':
-        ymdh = request.POST.get('sim_btn')
-        location = request.POST.get('sim_loc')
-        if ymdh==None or location == None:
-            dt = datetime.today()
-            dt_ymd = dt.strftime("%Y%m%d") #오늘 날짜 호출
+    if request.method == 'POST': #버튼 submit
+        ymdh = request.POST.get('sim_btn') #시뮬레이션 날짜
+        location = request.POST.get('sim_loc') #시뮬레이션 위치
+
+        if ymdh==None or location == None: #일반 새로고침
+            issim = 0
+            dt = datetime.today()#오늘 날짜 호출
+            dt_ymd = dt.strftime("%Y%m%d")
             dt_ymdh = dt.strftime("%Y%m%d%H")
             lat, lon = get_current_location()
             coor = {'lat':lat, 'lon':lon}
+
             wamis_dict = load_wamis_cur(dt_ymd)
+            print('wamis - loaded by API')
             print('info - loaded by refresh button')
-        else:
-            print('location: {}'.format(location))
+        else: #시뮬레이션
+            issim = 1 #시뮬레이션 중 인지 체크
             dt_ymdh = ymdh
-            dt_ymd = dt_ymdh[-2:] ##hh제거
-            wamis_dict, coor = load_wamis_sim(0)
+            dt_ymd = dt_ymdh[:-2] ##hh제거
+            try:
+                wamis_dict = request.session[dt_ymd]
+                print('wamis - loaded by session')
+            except:
+                wamis_dict = load_wamis_sim()
+                print('wamis - loaded by API')
+
+            coor = load_coor_sim(int(location))
             lat = coor['lat']
             lon = coor['lon']
+            wamis_rf = 0 #실시간 정보는 openweather에서 가져오므로 안 씀, 초기화만 
             print('info - loaded by simulation button')
 
         address = latalt_to_addr(lat, lon)
         alt = get_altitude(lat, lon)
         ow_dict = openweather(lat, lon)
-        # avalanche_alarm(rainfall=57, evelation=450)
 
-        request.session['address'] = address #세션 저장 -> API 재호출 방지
+        #재난 위험 레벨 측정
+        #wamis_dict['날짜(년월일시)'] = [강수량, 수위, 유입량, 방류량]
+        try:
+            wamis_rf = wamis_dict[dt_ymdh][0]
+            flood_level = find_minDistance(list(wamis_dict[dt_ymdh]))
+        except:
+            #24시인 것 0으로 번경
+            if dt_ymdh[8:] == '24':
+                dt_ymdh = dt_ymdh[:-2] + '00'
+            dt_datetime = datetime.strptime(dt_ymdh, '%Y%m%d%H')
+            dt_1hr_bef = (dt_datetime - timedelta(hours=1)).strftime('%Y%m%d%H')
+            wamis_rf = wamis_dict[dt_1hr_bef][0]
+            flood_level = find_minDistance(list(wamis_dict[dt_1hr_bef]))
+        #rf강수량만 선별
+        date_list = list(wamis_dict.keys())
+        wl_list=[]
+        for i in range(len(date_list)):
+            if dt_ymd in date_list[i]:
+                wl_list.append(wamis_dict[date_list[i]][0])
+        aval_level = avalanche_alarm(flood_level,wl_list ,alt)
+
+        #세션 저장 -> API 재호출 방지
+        request.session['address'] = address
         request.session['coor'] = coor
         request.session['alt'] = alt
         request.session['ow_dict'] = ow_dict
-        request.session['wamis_dict'] = wamis_dict
         request.session['dt_ymdh'] = dt_ymdh
-
-    elif request.session.get('address') == None and request.session.get('ow_dict') == None and request.session.get('wamis_dict'):
-        address = "정보를 새로고침 해 주세요."
-        coor = None
-        alt = None
-        ow_dict = None
-        wamis_dict = None
-        dt_ymdh = None
-        print('info - session not loaded')
+        request.session[dt_ymd] = wamis_dict
+        request.session['fl'] = flood_level
+        request.session['av'] = aval_level
+        request.session['issim'] = issim
+        request.session['wamis_rf'] = wamis_rf
     else:
-        address = request.session.get('address')
-        coor = request.session.get('coor')
-        alt = request.session.get('alt')
-        ow_dict = request.session.get('ow_dict')
-        wamis_dict = request.session.get('wamis_dict')
-        dt_ymdh = request.session.get('dt_ymdh')
+        address = request.session.get('address',"정보 새로고침을 해주세요.")
+        coor = request.session.get('coor',None)
+        alt = request.session.get('alt',None)
+        ow_dict = request.session.get('ow_dict',None)
+        dt_ymdh = request.session.get('dt_ymdh',None)
+        flood_level = request.session.get('fl',-1)
+        aval_level = request.session.get('av', -1)
+        issim = request.session.get('issim', 0)
+        wamis_rf = request.session.get('wamis_rf', 0)
         print('info - loaded by session')
         
     print('현재 위치 - {}'.format(address))
     print('현재 고도 - {}'.format(alt))
     print('현재 기온 정보 - {}'.format(ow_dict))
-    
-    flood_level = find_minDistance(list(wamis_dict[dt_ymdh]))
-    #wl만 선별
-    date_list = list(wamis_dict.keys())
-    wl_list=[]
-    for i in range(len(date_list)):
-        if dt_ymd in date_list[i]:
-            wl_list.append(wamis_dict[date_list[i]][0])
-    aval_level = avalanche_alarm(flood_level,wl_list ,alt)
+    # pp.pprint('wamis 정보 - {}'.format(wamis_dict))
+    print("호우 등급: {}, 산사태 등급: {}".format(flood_level, aval_level))
+    #1 : 위험 | 2: 주의 | 3: 안전
+    if dt_ymdh == None:
+        today = None
+    else:
+        #24시인 것 0으로 번경
+        if dt_ymdh[8:] == '24':
+            dt_ymdh = dt_ymdh[:-2] + '00'
+        today_datetime= datetime.strptime(dt_ymdh, '%Y%m%d%H')
+        # print(today_datetime)
+        today = today_datetime.strftime('%Y년%m월%d일 %H시')
+        print(today)
 
-    print("{}, {}".format(flood_level, aval_level))
-
-    return render(request, 'menu1/home.html',{'fl':flood_level, 'av':aval_level, 'api_key':youtube_api_key1, 'dt':dt_ymdh, 'menu':menu,'address':address, 'coor':coor, 'ow_dict':ow_dict})
+    return render(request, 'menu1/home.html',{'issim':issim, 'rf':wamis_rf, 'fl':flood_level, 'av':aval_level, 'api_key':youtube_api_key1, 'dt':today, 'menu':menu,'address':address, 'coor':coor, 'ow_dict':ow_dict})
 
 def menu2_home(request):
     menu=2
