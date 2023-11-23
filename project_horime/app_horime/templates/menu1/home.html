@@ -5,7 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
-    <title>호림이</title>
+    <title>호림이 - 위험도 예측</title>
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/main_logo.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,45 +20,291 @@
         font-family: 'Noto Sans KR', sans-serif;
         font-family: 'Poppins', sans-serif;
       }
+      body{
+        padding-bottom: 1600px;
+      }
       .main{
-        animation: slideDown .8s ease forwards;
+        animation: slideUp .8s ease forwards;
         margin: 0px 0px 0px 0px;
       }
       .main_img {
         width: 100%;
         animation: fadeIn 5s forwards;
       }
-      p.name{
+      {% comment %} p.name{
         animation: slideDown .8s ease-in-out forwards;
       }
       p.subname{
         animation: slideDown 1s ease-in-out forwards;
-      }
+      } {% endcomment %}
       .location{
-        margin: 0px 0px 0px 0px;
       }
       .loc_desc{
         margin: 2px 13px 0px 0px;
       }
+      .toast{
+        position: fixed;
+        right: 10px;
+        bottom: 100px;
+      }
     </style>
+    <script>
+      const shelter_flood = [
+        { label: "1", name: "예천군청", lat: 36.657983, lng: 128.452769 },
+        { label: "2", name: "삼우목련아파트", lat: 36.651225, lng: 128.442261 },
+        { label: "3", name: "예천군의회", lat: 36.656875, lng: 128.452828 },
+        { label: "4", name: "예천우체국", lat: 36.657097, lng: 128.452431 },
+        { label: "5", name: "예천교육청", lat: 36.655603, lng: 128.454547 },
+        { label: "6", name: "세종타운", lat: 36.654711, lng: 128.448914 },
+        { label: "7", name: "세아아파트 102동", lat: 36.645672, lng: 128.463594 },
+        { label: "8", name: "예천대심 국민임대아파트 103동", lat: 36.65255, lng: 128.441739 },
+        { label: "9", name: "예천대심 국민임대아파트 지하주차장", lat: 36.652586, lng: 128.441744 },
+        { label: "10", name: "조일리버빌 지하주차장", lat: 36.655856, lng: 128.458306 },
+        { label: "11", name: "두영서부빌라", lat: 36.654356, lng: 128.447972 },
+        { label: "12", name: "무궁화아파트", lat: 36.657603, lng:128.454289 },
+        { label: "13", name: "덕흥장미아파트 101동", lat: 36.649139, lng: 128.441119 },
+        { label: "14", name: "덕흥장미아파트 103동", lat: 36.649111, lng: 128.441089 },
+        { label: "15", name: "세아아파트 101동", lat: 36.645786, lng:128.464242 },
+      ];
+
+      const shelter_avalanche = [
+        { label: "1", name: "본리 경로당", lat: 36.599009, lng: 128.49251 },
+        { label: "2", name: "본리 밭마경로당", lat: 36.599849, lng: 128.49016 },
+        { label: "3", name: "원곡리마을회관", lat: 36.595368, lng: 128.43894 },
+        { label: "4", name: "기곡1리경로당", lat: 36.706403, lng: 128.57121 },
+        { label: "5", name: "수계2리마을회관", lat: 36.672216, lng: 128.54435 },
+        { label: "6", name: "우래1리마을회관", lat: 36.692766, lng: 128.57115 },
+      ];
+
+      let markers_flood = [];
+      let markers_avalanche = [];
+        
+      window.initMap = function () {
+        const map = new google.maps.Map(
+          document.getElementById("map"), {
+            center: { lat: {{coor.lat}}, lng: {{coor.lon}} },
+            zoom: 17,
+            mapId: '5f1293dcfc619b31'
+          }
+        );
+        const bounds = new google.maps.LatLngBounds();
+        const infoWindow = new google.maps.InfoWindow();
+
+        shelter_flood.forEach(({ label, name, lat, lng }) => {
+          const marker = new google.maps.Marker({
+            position: { lat, lng },
+            //label,
+            map,
+            visible: false,
+          });
+          // bounds.extend(marker.position);
+          marker.addListener("click", () => {
+            map.panTo(marker.position);
+            infoWindow.setContent(name);
+            infoWindow.open({
+              anchor: marker,
+              map
+            });
+          });
+          markers_flood.push(marker);
+        });
+
+        shelter_avalanche.forEach(({ label, name, lat, lng }) => {
+          const marker = new google.maps.Marker({
+            position: { lat, lng },
+            //label,
+            map,
+            visible: false,
+          });
+          // bounds.extend(marker.position);
+          marker.addListener("click", () => {
+            map.panTo(marker.position);
+            infoWindow.setContent(name);
+            infoWindow.open({
+              anchor: marker,
+              map
+            });
+          });
+          markers_avalanche.push(marker);
+        });
+        // map.fitBounds(bounds);
+      };
+
+      function toggleFlood() {
+          markers_flood.forEach(marker => {
+              marker.setVisible(!marker.getVisible());
+          });
+      } 
+
+      function toggleAval() {
+          markers_avalanche.forEach(marker => {
+              marker.setVisible(!marker.getVisible());
+          });
+      } 
+    </script>
   </head>
-  <body class=" h-100 text-center text-bg-light">
+  <body class="h-100 text-center text-bg-light">
+    <header class="bg-dark d-flex justify-content-center py-1">
+        <p class="name text-light" style="font-size:20px;" >호우 집중 재난 알림이 : 호림이&nbsp;&nbsp;</p>
+        <form method = "post" align="center">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-light btn-sm">정보 새로고침</button>
+        </form>
+    </header>
     <div class="container h-100 p-3 mx-auto flex-column">
       <main class="main">
-          <p class="name text-dark" style="font-size:20px;" >호우 집중 재난 알림이 : 호림이</p>
+        <div class="row mb-4 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
           <div class="location">
-            <div class="d-flex flex-wrap justify-content-center">
+            <div class="flex-wrap justify-content-center">
               <div class="loc_desc"><i class="bi bi-geo-alt-fill" style="color:#0143a5;"></i> 현재위치</div>
-              <form method = "post" align="center">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-blue btn-sm">위치 새로고침</button>
-              </form>
+              <p class="subname" style="font-size:20px; font-weight:600;">{{ address }}</p>
+              <p>{{dt}}</p>
             </div>
-            <p class="subname" style="font-size:20px;">{{ address }}</p>
+          </div>  
+          <div class="container weather">
+            {%if issim == 0%}
+              <p style="font-size:50px; line-height:20px;">{{ow_dict.temp}}°</p>
+              <p style="font-weight:600; line-height:20px;">{{ow_dict.desc}}</p>
+            {%else%}
+              <p style="font-size:35px; line-height:20px;">시뮬레이션 중</p>
+            {%endif%}
+              {% comment %} <p style="line-height:1px;">최고: {{ow_dict.temp_max}}° &nbsp;&nbsp; 최저: {{ow_dict.temp_min}}°</p> {% endcomment %}
+            {%if issim == 0%}
+              <p style="line-height:1px;">강수량: {{ow_dict.rain_1h}}mm</p>
+            {% else %}
+              <p style="line-height:1px;">강수량: {{rf}}mm</p>
+            {% endif %}
           </div>
+        </div>
+        <div class="d-flex justify-content-around">
+          {% if fl == 3 %}
+          <div class="bg-success row d-flex mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+            <div class="col p-3 p-lg-5 pt-lg-3">
+              <h1 class="display-4 fw-bold lh-1 text-body-emphasis">안전</h1>
+              <p class="lead">&nbsp;호우 위험도&nbsp;</p>
+            </div>
+          </div>
+          {% elif fl == 2 %}
+          <div class="bg-warning row d-flex mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+            <div class="col p-3 p-lg-5 pt-lg-3">
+              <h1 class="display-4 fw-bold lh-1 text-body-emphasis">주의</h1>
+              <p class="lead">&nbsp;호우 위험도&nbsp;</p>
+            </div>
+          </div>
+          {% elif fl == 1 %}
+          <div class="bg-danger row d-flex mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+            <div class="col p-3 p-lg-5 pt-lg-3">
+              <h1 class="display-4 fw-bold lh-1 text-body-emphasis">위험</h1>
+              <p class="lead">&nbsp;호우 위험도&nbsp;</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="bg-secondary row d-flex mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+            <div class="col p-3 p-lg-5 pt-lg-3">
+              <h1 class="display-4 fw-bold lh-1 text-body-emphasis">없음</h1>
+              <p class="lead">&nbsp;호우 위험도&nbsp;</p>
+            </div>
+          </div>
+          {% endif %}
+          {% if av == 3 %}
+          <div class="bg-success row d-flex mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+            <div class="col p-3 p-lg-5 pt-lg-3">
+              <h1 class="display-4 fw-bold lh-1 text-body-emphasis">안전</h1>
+              <p class="lead">산사태 위험도</p>
+            </div>
+          </div>
+          {% elif av == 2 %}
+          <div class="bg-warning row d-flex mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+            <div class="col p-3 p-lg-5 pt-lg-3">
+              <h1 class="display-4 fw-bold lh-1 text-body-emphasis">주의</h1>
+              <p class="lead">산사태 위험도</p>
+            </div>
+          </div> 
+          {% elif av == 1 %}
+          <div class="bg-danger row d-flex mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+            <div class="col p-3 p-lg-5 pt-lg-3">
+              <h1 class="display-4 fw-bold lh-1 text-body-emphasis">위험</h1>
+              <p class="lead">산사태 위험도</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="bg-secondary row d-flex mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+            <div class="col p-3 p-lg-5 pt-lg-3">
+              <h1 class="display-4 fw-bold lh-1 text-body-emphasis">없음</h1>
+              <p class="lead">산사태 위험도</p>
+            </div>
+          </div> 
+          {% endif %}
+        </div>
+        {% if fl == 1 or av == 1%}
+          <button type="button" class="mb-3 btn btn-danger btn-lg px-4 me-md-2 fw-bold shadow" data-bs-toggle="button" onclick="document.location.href='tel:010-2735-2143'">구조&nbsp;요청</button>
+          {% endif %}
+        <div class="row mb-5 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+          <div class="mb-4" id="map" style="height: 500px;"></div>
+          <div class="d-grid gap-2 d-md-flex justify-content-center mb-4 mb-lg-3">
+            <button type="radio" class="btn btn-primary btn-lg px-4 me-md-2 fw-bold" data-bs-toggle="button" onclick="toggleFlood()">주변 호우 대피소 보기</button>
+            <button type="radio" class="btn btn-success btn-lg px-4 me-md-2 fw-bold" data-bs-toggle="button" onclick="toggleAval()">주변 산사태 대피소 보기</button>
+          </div>
+        </div>
+        <div class="row mb-3 p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow">
+          <h1 class="mb-4 fw-bold">시뮬레이션 해보기</h1>
+          <p class="fw-bold">위치선택</p>
+          <form class="mb-5" method = "post" align="center">
+            {% csrf_token %}
+            <div class="btn-group mb-2" role="group" aria-label="Basic example">
+              <input type="radio" class="btn-check" name="sim_loc" value="0" id="vbtn-radio1" autocomplete="off" checked>
+              <label class="btn btn-blue btn-sm px-4 me-md-2 fw-bold" for="vbtn-radio1">예천군 미호리 보문교</label>
+              <input type="radio" class="btn-check" name="sim_loc" value="1" id="vbtn-radio2" autocomplete="off">
+              <label class="btn btn-blue btn-sm px-4 me-md-2 fw-bold" for="vbtn-radio2">예천군 효자면 백석리</label>
+            </div>
+            <div class="dropdown">
+              <button class="btn btn-blue btn-lg px-4 me-md-2 fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                날짜 선택
+              </button>
+              <ul class="dropdown-menu">
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071421"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071422"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071423"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071424"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071501"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071502"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071503"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071504"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071505"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071506"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071507"></input></li>
+                <li><input class="dropdown-item" type="submit" name="sim_btn" value="2023071508"></input></li>
+              </ul>
+            </div>
+          </form>
+        </div>
+
       </main>
     </div>
+    {% comment %} <script defer src="{%static 'js/map.js' %}"></script> {% endcomment %}
+    <script defer src="https://maps.googleapis.com/maps/api/js?key={{api_key}}&callback=initMap"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script>
+      $(document).ready(function() {
+        // 페이지가 로드될 때마다 토스트 보이기
+        $('.toast').toast('show');
+      });
+    </script>
   </body>
   {%include 'footer.html' %}
+  {% if fl == 1 or av == 1%}
+    <div class="toast-container">
+      <div class="toast border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+          <strong class="me-auto">위험⚠️</strong>
+          <small>방금</small>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          현재 재난이 발생하여 빠른 대피와 구조를 요청하세요!
+        </div>
+      </div>
+    </div>
+  {%endif%}
 </html>

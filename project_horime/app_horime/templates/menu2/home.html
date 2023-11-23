@@ -5,7 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
-    <title>호림이</title>
+    <title>호림이 - 재난별 생존수칙</title>
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/main_logo.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,27 +20,69 @@
         font-family: 'Noto Sans KR', sans-serif;
         font-family: 'Poppins', sans-serif;
       }
+      body{
+        padding-bottom: 2000px;
+      }
       .main{
-        animation: slideDown .8s ease forwards;
-        margin: 60px 0px 0px 0px;
+        animation: slideUp .8s ease forwards;
+        margin: 0px 0px 0px 0px;
       }
       .main_img {
         width: 100%;
         animation: fadeIn 5s forwards;
       }
-      p.name{
+      {% comment %} p.name{
         animation: slideDown .8s ease-in-out forwards;
       }
       p.subname{
         animation: slideDown 1s ease-in-out forwards;
+      } {% endcomment %}
+      img{
+        width:100%;
+      }
+      .card-text{
+        text-align: left;
       }
     </style>
   </head>
-  <body class=" h-100 text-center text-bg-light" style="font-weight: 600;">
+  <body class="h-100 text-center text-bg-light">
+    <header class="bg-dark d-flex justify-content-center py-1">
+      <p class="name text-light" style="font-size:20px;" >호우 집중 재난 알림이 : 호림이&nbsp;&nbsp;</p>
+    </header>
     <div class="container d-flex h-100 p-3 mx-auto flex-column">
       <main class="main">
-          <p class="subname text-dark" style="font-size:20px;" >호우 집중 재난 알림이 : 호림이</p>
-        </main>
+        <div class="card mb-3">
+          <img src="{%static 'img/rule1.png'%}"></img>
+        </div>
+        <div class="card mb-3">
+          <img src="{%static 'img/rule2.png'%}"></img>
+          <div class="card-body">
+            <p class="card-text">
+            - TV, 라디오 등을 통해 기상정보를 청취하여 내가 있는 지역의 상황을 파악한다.<br>
+            - 주변에 있는 사람들에게 연락하여 안전을 확인한다<br>
+            - 차량은 속도를 줄여 운행한다.<br>
+            - 개울가, 하천변, 해안가 등 침수 위험지역에는 접근하지 않는다</p>
+          </div>
+        </div>
+        <div class="card mb-3">
+          <img src="{%static 'img/rule3.png'%}"></img>
+          <div class="card-body">
+            <p class="card-text">
+              - 건물의 출입문, 창문은 닫고 최대한 멀리 떨어진다.<br>
+              - 가스 밸브를 잠그고 감전 위험이 있는 전기시설은 만지지 않는다.</p>
+          </div>
+        </div>
+        <div class="card mb-3">
+          <img src="{%static 'img/rule4.png'%}"></img>
+          <div class="card-body">
+            <p class="card-text">
+              - 침수지역, 산간, 계곡 등 위험지역에 있거나 대피 권고를 받은 경우 주변에 있는 사람들과 즉시 대피한다.<br>
+              - 노인, 어린이, 장애인 등 대피에 어려움이 있는 분들은 대피할 수 있도록 돕는다.<br>
+              - 침수된 도로, 지하도로, 교량 등은 차량의 통행을 엄격히 금지한다.<br>
+              - 농촌지역에서는 논둑이나 물꼬를 보러 나가지 않는다.</p>
+          </div>
+        </div>
+      </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
   </body>

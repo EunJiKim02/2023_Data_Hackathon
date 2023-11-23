@@ -1,0 +1,6 @@
+venv_horime/horimevenv
+venv_horime/
+horimevenv/
+BS5_templates/
+.env
+.DS_Store
